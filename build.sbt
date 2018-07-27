@@ -18,14 +18,17 @@ resolvers ++= Seq(
 libraryDependencies ++= {
   val scalazVersion = "7.2.8"
   val akkaHttp = "10.0.2"
+  val playWsStandaloneVersion = "1.1.9"
   val scalaTestVersion = "3.0.1"
   val shapelessVersion = "2.3.2"
 
   Seq(
-    "org.scalaz"             %% "scalaz-core"    % scalazVersion,
-    "com.typesafe.akka"      %% "akka-http-xml"  % akkaHttp,
-    "org.scalatest"          %% "scalatest"      % scalaTestVersion    % "test",
-    "com.chuusai"            %% "shapeless"      % shapelessVersion
+    "org.scalaz"             %% "scalaz-core"            % scalazVersion,
+    "com.typesafe.play"      %% "play-ahc-ws-standalone" % playWsStandaloneVersion,
+    "com.typesafe.play"      %% "play-ws-standalone-xml" % playWsStandaloneVersion,
+    "org.scalatest"          %% "scalatest"              % scalaTestVersion         % "test",
+    "com.chuusai"            %% "shapeless"              % shapelessVersion,
+    "org.scala-lang.modules" %% "scala-xml"              % "1.0.5"
   )
 }
 

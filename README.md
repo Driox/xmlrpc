@@ -9,7 +9,7 @@ Chances are, that if you are reading this, you already know what XML-RPC is. But
 Despite that more powerful and modern rpc protocols are used nowadays, I have written this to support connection to older servers.
 
 # Dependencies
-This library uses [Akka HTTP](http://doc.akka.io/docs/akka-http/current/index.html) to connect to any HTTP server. It would be easy to change that if one wants to use another library like [Dispatch](https://github.com/dispatch/dispatch). You are free to fork this project and make the necesssary changes in _Xmlrpc.scala_, located in the main package. 
+This library uses [Play WS](https://github.com/playframework/play-ws) to connect to any HTTP server. It would be easy to change that if one wants to use another library like [Dispatch](https://github.com/dispatch/dispatch). You are free to fork this project and make the necesssary changes in _Xmlrpc.scala_, located in the main package.
   
 Thanks to Scalaz, it offers good feedback in case of any failure with the help of __Validation[T]__. Validation is _applicative_, this means that all the errors in the process of deserialization will be accumulated.
 
@@ -62,10 +62,11 @@ import xmlrpc.protocol.XmlrpcProtocol._
 import xmlrpc.Xmlrpc._
 ```
   
-If you don't have an Actor System in scope or you don't have an environment created for Akka HTTP, you must set it up:
+If you don't have an Actor System in scope or you don't have an environment created for WS Client, you must set it up:
 ```scala
 implicit val system = ActorSystem()
 implicit val ma = ActorMaterializer()
+implicit val ws_client = StandaloneAhcWSClient()
 implicit val timeout = Timeout(5 seconds)
 import system.dispatcher
 ```

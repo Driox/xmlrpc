@@ -1,17 +1,14 @@
 package xmlrpc
 
-import akka.actor.ActorSystem
-import akka.http.scaladsl.Http
-import akka.http.scaladsl.client.RequestBuilding._
-import akka.http.scaladsl.marshallers.xml.ScalaXmlSupport._
-import akka.http.scaladsl.model._
-import akka.http.scaladsl.unmarshalling.{FromResponseUnmarshaller, Unmarshal}
-import akka.stream.Materializer
 import akka.util.Timeout
 import xmlrpc.protocol._
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 import scala.xml.NodeSeq
+import play.api.libs.ws.XMLBodyReadables._
+import play.api.libs.ws.DefaultBodyWritables._
+import XmlrpcProtocol._
+import play.api.libs.ws.StandaloneWSClient
 
 /**
   * This is the client api to connect to the Xmlrpc server. A client can send any request
@@ -24,31 +21,23 @@ import scala.xml.NodeSeq
   */
 object Xmlrpc {
 
-  import XmlrpcProtocol._
-
-  case class XmlrpcServer(fullAddress: String) {
-    def uri: Uri = Uri(fullAddress)
-  }
+  case class XmlrpcServer(fullAddress: String)
 
   def invokeMethod[P: Datatype, R: Datatype](name: String, parameter: P = Void)
-                                            (implicit xmlrpcServer: XmlrpcServer,
-                                             as: ActorSystem,
-                                             ma: Materializer,
-                                             ec: ExecutionContext,
-                                             fc: Timeout): XmlrpcResponse[R] = {
-
-    import XmlrpcResponse.AkkaHttpToXmlrpcResponse
-
-    def unmarshall[A](f: Future[HttpResponse])(implicit um: FromResponseUnmarshaller[A]): Future[A] =
-      f.flatMap(Unmarshal(_).to[A])
-
+                                   (implicit xmlrpcServer: XmlrpcServer,
+                                    ws_client:StandaloneWSClient,
+                                    ec: ExecutionContext,
+                                    fc: Timeout): XmlrpcResponse[R] = {
 
     val request: NodeSeq = writeXmlRequest(name, parameter)
-    val requestWithHeader: String = """<?xml version="1.0"?>""" + request.toString
-
+    val body: String = """<?xml version="1.0"?>""" + request.toString
 
     try {
-      (Http().singleRequest(Post(xmlrpcServer.uri, request)) ~> unmarshall[NodeSeq]).asXmlrpcResponse[R]
+      val response = ws_client
+        .url(xmlrpcServer.fullAddress)
+        .post(body)
+        .map(_.body[NodeSeq])
+      new XmlrpcResponse[R](response map readXmlResponse[R])
     } catch {
       case t: Throwable => XmlrpcResponse(ConnectionError("An exception has been thrown by Spray", Some(t)).failures)
     }

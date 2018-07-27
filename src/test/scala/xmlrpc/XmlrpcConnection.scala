@@ -6,11 +6,12 @@ import akka.util.Timeout
 import org.scalatest.FunSpec
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Millis, Seconds, Span}
+import play.api.libs.ws.ahc.StandaloneAhcWSClient
 import xmlrpc.protocol.XmlrpcProtocol
 
 import scala.concurrent.duration._
 import scala.language.postfixOps
-import scalaz.{Success, Failure}
+import scalaz.{Failure, Success}
 
 class XmlrpcConnection extends FunSpec with ScalaFutures {
   // Xmlrpc imports
@@ -27,6 +28,7 @@ class XmlrpcConnection extends FunSpec with ScalaFutures {
   implicit val system = ActorSystem()
   implicit val ma = ActorMaterializer()
   implicit val timeout = Timeout(5 seconds)
+  implicit val ws_client = StandaloneAhcWSClient()
   import system.dispatcher
 
   describe("The connection with a XML-RPC server") {
